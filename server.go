@@ -3,13 +3,14 @@ package speedtest
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"net/http"
 	"sort"
 	"strconv"
-	"errors"
 	"time"
 )
 
@@ -162,12 +163,39 @@ func (l *ServerList) String() string {
 	return slr
 }
 
-// String representation of Server
-func (s *Server) String() string {
-	return fmt.Sprintf("[%4s] %8.2fkm \n%s (%s) by %s\n", s.ID, s.Distance, s.Name, s.Country, s.Sponsor)
+func (s Server) Show(logger *log.Logger) {
+	fmt.Printf(" \n")
+	logger.Printf("Target Server: [%4s] %8.2fkm ", s.Id, s.Distance)
+	logger.Printf(s.Name + " (" + s.Country + ") by " + s.Sponsor + "\n")
 }
 
-// CheckResultValid checks that results are logical given UL and DL speeds
-func (s Server) CheckResultValid() bool {
-	return !(s.DLSpeed*100 < s.ULSpeed) || !(s.DLSpeed > s.ULSpeed*100)
+func (svrs Servers) StartTest(logger *log.Logger) {
+	for i, s := range svrs {
+		s.Show(logger)
+		latency := PingTest(s.Url)
+		dlSpeed := DownloadTest(s.Url, latency)
+		ulSpeed := UploadTest(s.Url, latency)
+		svrs[i].DLSpeed = dlSpeed
+		svrs[i].ULSpeed = ulSpeed
+	}
+}
+
+func (svrs Servers) ShowResult(logger *log.Logger) {
+	fmt.Printf(" \n")
+	if len(svrs) == 1 {
+		logger.Printf("Download: %5.2f Mbit/s\n", svrs[0].DLSpeed)
+		logger.Printf("Upload: %5.2f Mbit/s\n", svrs[0].ULSpeed)
+	} else {
+		for _, s := range svrs {
+			logger.Printf("[%4s] Download: %5.2f Mbit/s, Upload: %5.2f Mbit/s\n", s.Id, s.DLSpeed, s.ULSpeed)
+		}
+		avgDL := 0.0
+		avgUL := 0.0
+		for _, s := range svrs {
+			avgDL = avgDL + s.DLSpeed
+			avgUL = avgUL + s.ULSpeed
+		}
+		logger.Printf("Download Avg: %5.2f Mbit/s\n", avgDL/float64(len(svrs)))
+		logger.Printf("Upload Avg: %5.2f Mbit/s\n", avgUL/float64(len(svrs)))
+	}
 }
