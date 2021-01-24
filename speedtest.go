@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/showwin/speedtest-go/speedtest"
+	"github.com/meschenbacher/speedtest-go/speedtest"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

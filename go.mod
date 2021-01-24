@@ -1,4 +1,4 @@
-module github.com/showwin/speedtest-go
+module github.com/meschenbacher/speedtest-go
 
 go 1.12
 
