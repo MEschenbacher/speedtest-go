@@ -15,7 +15,7 @@ type Speedtest struct {
 	logToFile   bool
 	logfilepath string
 	user        User
-	serverList  List
+	serverList  ServerList
 }
 
 func (s *Speedtest) ToggleLogDest() {
@@ -44,19 +44,33 @@ func (s *Speedtest) SetLogFilePath(newFilePath string) {
 }
 
 func (s *Speedtest) FetchServers() {
-	s.user = FetchUserInfo()
-	s.serverList = FetchServerList(s.user)
+	user, err := FetchUserInfo()
+	if err != nil {
+		s.logger.Print(err)
+		return
+	}
+	s.user = *user
+	list, err := FetchServerList(user)
+	if err != nil {
+		s.logger.Print(err)
+		return
+	}
+	s.serverList = list
 }
 
 func (s *Speedtest) ShowUser() {
-	s.user.Show()
+	s.logger.Print(s.user.String())
 }
 func (s *Speedtest) ShowList() {
-	s.serverList.Show()
+	s.logger.Print(s.serverList.String())
 }
 
 func (s *Speedtest) ShowResult(serverIds []int) {
-	targets := s.serverList.FindServer(serverIds)
+	targets, err := s.serverList.FindServer(serverIds)
+	if err != nil {
+		s.logger.Print(err)
+		return
+	}
 	targets.StartTest(s.logger)
 	targets.ShowResult(s.logger)
 }

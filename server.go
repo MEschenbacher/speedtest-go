@@ -31,6 +31,10 @@ type Server struct {
 	ULSpeed  float64
 }
 
+func (*Server) String() string {
+	return ""
+}
+
 // ServerList list of Server
 type ServerList struct {
 	Servers []*Server `xml:"servers>server"`
@@ -165,18 +169,16 @@ func (l *ServerList) String() string {
 
 func (s Server) Show(logger *log.Logger) {
 	fmt.Printf(" \n")
-	logger.Printf("Target Server: [%4s] %8.2fkm ", s.Id, s.Distance)
+	logger.Printf("Target Server: [%4s] %8.2fkm ", s.ID, s.Distance)
 	logger.Printf(s.Name + " (" + s.Country + ") by " + s.Sponsor + "\n")
 }
 
 func (svrs Servers) StartTest(logger *log.Logger) {
-	for i, s := range svrs {
+	for _, s := range svrs {
 		s.Show(logger)
-		latency := PingTest(s.Url)
-		dlSpeed := DownloadTest(s.Url, latency)
-		ulSpeed := UploadTest(s.Url, latency)
-		svrs[i].DLSpeed = dlSpeed
-		svrs[i].ULSpeed = ulSpeed
+		s.PingTest()
+		s.DownloadTest(false)
+		s.UploadTest(false)
 	}
 }
 
@@ -187,7 +189,7 @@ func (svrs Servers) ShowResult(logger *log.Logger) {
 		logger.Printf("Upload: %5.2f Mbit/s\n", svrs[0].ULSpeed)
 	} else {
 		for _, s := range svrs {
-			logger.Printf("[%4s] Download: %5.2f Mbit/s, Upload: %5.2f Mbit/s\n", s.Id, s.DLSpeed, s.ULSpeed)
+			logger.Printf("[%4s] Download: %5.2f Mbit/s, Upload: %5.2f Mbit/s\n", s.ID, s.DLSpeed, s.ULSpeed)
 		}
 		avgDL := 0.0
 		avgUL := 0.0

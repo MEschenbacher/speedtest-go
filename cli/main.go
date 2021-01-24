@@ -1,11 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"time"
-
 	speedtest "github.com/meschenbacher/speedtest-go"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -20,7 +15,6 @@ func main() {
 	kingpin.Version("1.1.1")
 	kingpin.Parse()
 
-	SetTimeout()
 	speedtester := speedtest.New()
 	speedtester.FetchServers()
 
